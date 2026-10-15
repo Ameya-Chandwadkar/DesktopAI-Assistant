@@ -1,0 +1,20 @@
+{
+  "_comment": "Optional. Copy to config.json, edit, then run: python -m nova --import-config config.json  (keys starting with _ are ignored). Everything here can also be changed in the Settings window.",
+  "search_roots": [
+    "C:\\Users\\YOUR_NAME\\Documents",
+    "C:\\Users\\YOUR_NAME\\Desktop",
+    "D:\\Study"
+  ],
+  "browser": "chrome",
+  "always_on_top": true,
+  "microphone": "",
+  "vosk_model_path": "",
+  "custom_apps": {
+    "spotify": "C:\\Users\\YOUR_NAME\\AppData\\Roaming\\Spotify\\Spotify.exe"
+  },
+  "custom_sites": {
+    "college portal": "https://portal.example.edu"
+  },
+  "history_enabled": true,
+  "max_search_results": 8
+}

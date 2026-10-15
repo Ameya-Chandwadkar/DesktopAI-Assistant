@@ -1,0 +1,5 @@
+# Runtime dependencies (install on the Lenovo). Python 3.12 recommended.
+# PySide6-Essentials is the widgets-only subset (~100 MB) - NOVA doesn't need WebEngine etc.
+PySide6-Essentials>=6.7,<7
+vosk>=0.3.45,<0.4
+sounddevice>=0.4.7,<0.6
