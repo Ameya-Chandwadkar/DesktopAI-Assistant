@@ -41,18 +41,18 @@ def verdict(peak: int, text: str, have_model: bool) -> list[str]:
             "  - In the same page, turn off/try 'Audio enhancements', and speak closer to the mic.",
         ]
     elif peak >= CLIP_PEAK:
-        lines.append(f"RESULT: the signal is clipping (too loud). Lower the Input volume or speak further away.")
+        lines.append("RESULT: the signal is clipping (too loud). Lower the Input volume or speak further away.")
     else:
         lines.append(f"RESULT: microphone level is fine (peak {dbfs(peak):.0f} dBFS).")
     if not have_model:
-        lines.append("  - No speech model found, so recognition was not tested: python -m nova --download-model small")
+        lines.append("  - No speech model found, so recognition was not tested: python -m nova --download-model whisper-small")
     elif text:
         lines.append(f"  - The model heard: \"{text}\"")
-        lines.append("  - If that differs from what you said, it's an accuracy problem: try the large model "
-                     "(python -m nova --download-model large) or tell Claude so Phase 2 can use Whisper.")
+        lines.append("  - If that differs from what you said it's an accuracy problem: use Whisper "
+                     "(python -m nova --download-model whisper-small) or a bigger Whisper model.")
     else:
-        lines.append("  - Sound arrived but the model recognised no words: speak clearly, nearer the mic, "
-                     "and try the large model.")
+        lines.append("  - Sound arrived but the model recognised no words: speak clearly and nearer the mic; "
+                     "Whisper (--download-model whisper-small) is far better than Vosk's small model.")
     return lines
 
 
@@ -99,6 +99,7 @@ def run_mic_test(
     finally:
         source.stop()
     if stream is not None:
+        out("Recognising...")
         try:
             text = stream.finish() or text
         except SpeechError:

@@ -66,10 +66,13 @@ def run_checks() -> int:
         add(FAIL, "Data folder", f"cannot open database ({e})")
         return _print(results)
 
-    from .speech.vosk_backend import find_model
+    from .speech.engines import choose_engine
+    from .speech.whisper_backend import find_whisper_model, whisper_available
 
-    model = find_model(settings.vosk_model_path)
-    add(OK if model else WARN, "Speech model", str(model) if model else "none found: run python -m nova --download-model small")
+    add(OK if whisper_available() else WARN, "faster-whisper", "importable" if whisper_available() else "not installed (pip install -r requirements.txt)")
+    add(OK if find_whisper_model() else WARN, "Whisper model", str(find_whisper_model() or "none: python -m nova --download-model whisper-small"))
+    choice = choose_engine(settings)
+    add(OK if choice else WARN, "Speech engine", choice.label if choice else "none usable - typed commands only")
 
     for root in settings.search_roots or []:
         add(OK if Path(root).is_dir() else WARN, "Search folder", root)

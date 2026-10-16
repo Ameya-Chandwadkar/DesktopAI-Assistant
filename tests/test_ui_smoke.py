@@ -54,7 +54,7 @@ def type_command(w, qapp, text):
 def test_window_flags_and_missing_model(qapp, window):
     assert window.windowFlags() & Qt.WindowStaysOnTopHint
     assert window.windowFlags() & Qt.FramelessWindowHint
-    assert wait_for(qapp, lambda: "model not found" in window._status.text().lower())
+    assert wait_for(qapp, lambda: "no speech model found" in window._status.text().lower())
     assert not window._mic.isEnabled()
 
 

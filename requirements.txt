@@ -2,4 +2,5 @@
 # PySide6-Essentials is the widgets-only subset (~100 MB) - NOVA doesn't need WebEngine etc.
 PySide6-Essentials>=6.7,<7
 vosk>=0.3.45,<0.4
+faster-whisper>=1.0,<2
 sounddevice>=0.4.7,<0.6

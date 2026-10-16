@@ -18,6 +18,7 @@ from . import paths
 from .db import Database
 
 BROWSERS = ("default", "chrome", "edge", "firefox")
+SPEECH_ENGINES = ("auto", "whisper", "vosk")
 _PREF_KEY = "settings"
 
 
@@ -43,6 +44,7 @@ class Settings:
     search_roots: list[str] = field(default_factory=paths.default_search_roots)
     browser: str = "default"
     always_on_top: bool = True
+    speech_engine: str = "auto"  # auto = Whisper if downloaded, else Vosk
     microphone: str = ""  # substring of a device name; "" = system default
     vosk_model_path: str = ""  # "" = auto-detect inside the models folder
     custom_apps: dict[str, str] = field(default_factory=dict)  # spoken name -> .exe/.lnk path
@@ -60,6 +62,8 @@ class Settings:
             s.search_roots = _str_list(data["search_roots"])
         if data.get("browser") in BROWSERS:
             s.browser = data["browser"]
+        if data.get("speech_engine") in SPEECH_ENGINES:
+            s.speech_engine = data["speech_engine"]
         for name in ("always_on_top", "history_enabled"):
             if isinstance(data.get(name), bool):
                 setattr(s, name, data[name])

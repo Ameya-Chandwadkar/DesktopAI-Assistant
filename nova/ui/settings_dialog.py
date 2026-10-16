@@ -14,9 +14,9 @@ from PySide6.QtWidgets import (
 
 from ..actions.apps import is_valid_app_name
 from ..actions.web import UrlError, validate_url
-from ..config import BROWSERS, Settings
+from ..config import BROWSERS, SPEECH_ENGINES, Settings
 from ..speech.mic import list_input_devices
-from ..speech.vosk_backend import find_model
+from ..speech.engines import choose_engine
 
 DEFAULT_MIC = "System default"
 
@@ -147,6 +147,9 @@ class SettingsDialog(QDialog):
                 self.mic.addItem(s.microphone)
                 match = s.microphone
             self.mic.setCurrentText(match)
+        self.engine = QComboBox()
+        self.engine.addItems(SPEECH_ENGINES)
+        self.engine.setCurrentText(s.speech_engine)
         self.model = QLineEdit(s.vosk_model_path)
         self.model.setPlaceholderText("Leave empty to auto-detect")
         browse = QPushButton("Browse…")
@@ -154,13 +157,14 @@ class SettingsDialog(QDialog):
         mrow = QHBoxLayout()
         mrow.addWidget(self.model, 1)
         mrow.addWidget(browse)
-        found = find_model(s.vosk_model_path)
-        self.model_status = QLabel(f"Using: {found}" if found else "No speech model found - run: python -m nova --download-model small")
+        found = choose_engine(s)
+        self.model_status = QLabel(f"Using: {found.kind} ({found.path})" if found else "No speech model found - run: python -m nova --download-model whisper-small")
         self.model_status.setWordWrap(True)
         form.addRow("Microphone", self.mic)
+        form.addRow("Speech engine", self.engine)
         form.addRow("Vosk model folder", mrow)
         form.addRow(self.model_status)
-        form.addRow(QLabel("Changing the model folder reloads speech recognition; a new microphone applies on the next press."))
+        form.addRow(QLabel("'auto' uses Whisper when its model is downloaded (more accurate), otherwise Vosk.\nChanging engine/model reloads speech recognition; a new microphone applies on the next press."))
         return w
 
     # ---- actions --------------------------------------------------------
@@ -219,6 +223,7 @@ class SettingsDialog(QDialog):
             custom_sites=sites,
             microphone="" if mic == DEFAULT_MIC else mic,
             vosk_model_path=self.model.text().strip(),
+            speech_engine=self.engine.currentText(),
         )
 
     def result_settings(self) -> Settings:

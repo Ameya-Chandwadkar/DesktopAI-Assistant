@@ -17,7 +17,7 @@ from ..controller import Assistant, Outcome
 from ..db import Database
 from ..speech.mic import MicCapture
 from ..speech.ptt import PushToTalk
-from ..speech.vosk_backend import SpeechError, VoskRecognizer, find_model
+from ..speech.engines import choose_engine, create_recognizer, missing_message
 from . import theme
 from .history_dialog import HistoryDialog
 from .settings_dialog import SettingsDialog
@@ -33,7 +33,7 @@ class MainWindow(QWidget):
     def __init__(self, assistant: Assistant, store: SettingsStore, db: Database):
         super().__init__()
         self._assistant, self._store, self._db = assistant, store, db
-        self._recognizer: VoskRecognizer | None = None
+        self._recognizer = None
         self._ptt: PushToTalk | None = None
         self._bridge = SpeechBridge()
         self._speech_ready = False
@@ -168,15 +168,13 @@ class MainWindow(QWidget):
     # ---- speech ---------------------------------------------------------
     def _load_speech(self) -> None:
         s = self._store.get()
-        model = find_model(s.vosk_model_path)
-        if model is None:
-            self._set_mic_unavailable(
-                "Speech model not found - typing still works. Run: python -m nova --download-model small, then restart NOVA."
-            )
+        choice = choose_engine(s)
+        if choice is None:
+            self._set_mic_unavailable(missing_message(s))
             return
         self._mic.setEnabled(False)
-        self._status.setText("Loading speech model…")
-        rec = VoskRecognizer(model)
+        self._status.setText(f"Loading speech model ({choice.path.name})…")
+        rec = create_recognizer(choice)
 
         def load():
             rec.load()
@@ -184,7 +182,7 @@ class MainWindow(QWidget):
 
         run_in_background(load, self._on_model_loaded, self._on_model_failed)
 
-    def _on_model_loaded(self, rec: VoskRecognizer) -> None:
+    def _on_model_loaded(self, rec) -> None:
         self._recognizer = rec
         self._speech_ready = True
         self._mic.setEnabled(True)
@@ -310,7 +308,7 @@ class MainWindow(QWidget):
             new = dlg.result_settings()
             self._store.update(new)
             self.apply_settings()
-            if (new.vosk_model_path, new.microphone) != (old.vosk_model_path, old.microphone):
+            if (new.vosk_model_path, new.microphone, new.speech_engine) != (old.vosk_model_path, old.microphone, old.speech_engine):
                 self._ptt = None  # next press picks up the new mic
-                if new.vosk_model_path != old.vosk_model_path:
+                if (new.vosk_model_path, new.speech_engine) != (old.vosk_model_path, old.speech_engine):
                     self._load_speech()

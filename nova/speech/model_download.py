@@ -1,6 +1,7 @@
-"""Download a Vosk speech model from the official site (alphacephei.com). Run on the Lenovo:
+"""Download a speech model (Whisper via the Hugging Face hub, Vosk from alphacephei.com). Run on the Lenovo:
 
-    python -m nova --download-model small
+    python -m nova --download-model whisper-small     (recommended)
+    python -m nova --download-model vosk-small        (weaker, smaller)
 """
 
 from __future__ import annotations
@@ -21,8 +22,37 @@ MODELS = {
 }
 
 
+WHISPER_SIZES = {"base": "base.en", "small": "small.en"}  # ~140 MB / ~480 MB
+
+
 class DownloadError(Exception):
     pass
+
+
+def download_whisper(key: str, progress: Callable[[str], None] = print) -> Path:
+    """key: 'base' or 'small'. Fetched from the Hugging Face hub by faster-whisper."""
+    if key not in WHISPER_SIZES:
+        raise DownloadError(f"Unknown Whisper model '{key}'. Choose: {', '.join(WHISPER_SIZES)}")
+    size = WHISPER_SIZES[key]
+    final = paths.models_dir() / f"whisper-{size}"
+    if (final / "model.bin").is_file():
+        progress(f"Already installed: {final}")
+        return final
+    try:
+        from faster_whisper.utils import download_model as fw_download
+    except ImportError as e:
+        raise DownloadError("faster-whisper isn't installed. Run: pip install -r requirements.txt") from e
+    progress(f"Downloading Whisper {size} from the Hugging Face hub (this can take a few minutes)...")
+    try:
+        fw_download(size, output_dir=str(final))
+    except Exception as e:
+        shutil.rmtree(final, ignore_errors=True)
+        raise DownloadError(f"Download failed: {e}. Check your internet connection and try again.") from e
+    if not (final / "model.bin").is_file():
+        shutil.rmtree(final, ignore_errors=True)
+        raise DownloadError("The download finished but model.bin is missing.")
+    progress(f"Installed to {final}")
+    return final
 
 
 def safe_extract(zip_path: Path, dest: Path) -> None:
@@ -37,6 +67,10 @@ def safe_extract(zip_path: Path, dest: Path) -> None:
 
 
 def download_model(key: str = "small", progress: Callable[[str], None] = print) -> Path:
+    """key: whisper-base | whisper-small | vosk-small | vosk-large (small/large = the Vosk ones)."""
+    if key.startswith("whisper-"):
+        return download_whisper(key.split("-", 1)[1], progress)
+    key = key.removeprefix("vosk-")
     if key not in MODELS:
         raise DownloadError(f"Unknown model '{key}'. Choose: {', '.join(MODELS)}")
     name, size = MODELS[key]
