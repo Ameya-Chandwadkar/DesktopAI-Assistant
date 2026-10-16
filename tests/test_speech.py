@@ -168,3 +168,8 @@ def test_level_bar_bounds():
     from nova.speech.mic_test import level_bar
 
     assert level_bar(0) == "." * 24 and level_bar(32767) == "#" * 24
+
+
+def test_mic_test_quiet_side_is_not_alarmist():
+    _, text = run_test(pcm(1.0, 2500))
+    assert "quiet side" in text and "VERY QUIET" not in text

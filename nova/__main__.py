@@ -34,6 +34,10 @@ def main(argv: list[str] | None = None) -> int:
         choice = choose_engine(settings)
         if choice:
             print(f"Loading speech engine ({choice.label}) ...")
+            if choice.kind == "vosk":
+                print("NOTE: this is the weaker Vosk engine. For much better accuracy run:
+"
+                      "      python -m nova --download-model whisper-small   (then run --mic-test again)")
             try:
                 recognizer = create_recognizer(choice)
                 recognizer.load()

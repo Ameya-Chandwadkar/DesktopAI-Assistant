@@ -12,7 +12,8 @@ from .mic import AudioSource, MicCapture, MicError, PRIVACY_HINT, list_input_dev
 from .vosk_backend import Recognizer, SpeechError
 
 SILENT_PEAK = 60       # about -55 dBFS: effectively nothing arrived
-QUIET_PEAK = 2000      # about -24 dBFS: speech peaks lower than this are too faint for good recognition
+QUIET_PEAK = 1000      # about -30 dBFS: far too faint
+LOWISH_PEAK = 5000     # about -16 dBFS: usable, but healthy speech peaks higher
 CLIP_PEAK = 32000
 
 
@@ -39,6 +40,12 @@ def verdict(peak: int, text: str, have_model: bool) -> list[str]:
             f"RESULT: the microphone works but is VERY QUIET (peak {dbfs(peak):.0f} dBFS).",
             "  - Settings > System > Sound > Input > your mic > set Input volume to 100.",
             "  - In the same page, turn off/try 'Audio enhancements', and speak closer to the mic.",
+        ]
+    elif peak < LOWISH_PEAK:
+        lines += [
+            f"RESULT: the microphone level is on the quiet side (peak {dbfs(peak):.0f} dBFS; healthy speech peaks around -12 to -6).",
+            "  - Settings > System > Sound > Input > your mic > Input volume 100, and speak closer to the laptop.",
+            "  - Whisper (python -m nova --download-model whisper-small) also boosts quiet audio automatically.",
         ]
     elif peak >= CLIP_PEAK:
         lines.append("RESULT: the signal is clipping (too loud). Lower the Input volume or speak further away.")
