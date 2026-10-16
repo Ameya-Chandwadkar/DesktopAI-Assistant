@@ -123,3 +123,48 @@ def test_find_model(tmp_path, monkeypatch):
     assert find_model().name == "vosk-model-en-us-0.22-lgraph"  # prefers the bigger model
     assert find_model(str(tmp_path / "nope")) is None
     assert find_model(str(tmp_path)) == tmp_path
+
+
+# ---- mic test tool -----------------------------------------------------
+def run_test(chunks, recognizer=None, fail=None):
+    from nova.speech.mic_test import run_mic_test
+
+    lines = []
+    code = run_mic_test("", seconds=0.5, recognizer=recognizer, source_factory=lambda: FakeSource(chunks, fail=fail), out=lines.append)
+    return code, "\n".join(lines)
+
+
+def test_mic_test_silence_points_at_privacy():
+    code, text = run_test(pcm(1.0, 0))
+    assert code == 0 and "no sound reached NOVA" in text and "Privacy" in text
+
+
+def test_mic_test_quiet_mic_advice():
+    _, text = run_test(pcm(1.0, 500))
+    assert "VERY QUIET" in text and "Input volume" in text
+
+
+def test_mic_test_good_level_shows_heard_text():
+    _, text = run_test(pcm(1.0, 8000), FakeRecognizer(final="open notepad"))
+    assert "level is fine" in text and 'heard: "open notepad"' in text
+
+
+def test_mic_test_no_model_says_so():
+    _, text = run_test(pcm(1.0, 8000))
+    assert "download-model" in text
+
+
+def test_mic_test_clipping():
+    _, text = run_test(pcm(1.0, 32700))
+    assert "clipping" in text
+
+
+def test_mic_test_open_failure():
+    code, text = run_test([], fail=MicError("No microphone was found."))
+    assert code == 1 and "FAILED" in text
+
+
+def test_level_bar_bounds():
+    from nova.speech.mic_test import level_bar
+
+    assert level_bar(0) == "." * 24 and level_bar(32767) == "#" * 24

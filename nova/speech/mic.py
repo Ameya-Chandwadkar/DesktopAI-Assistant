@@ -39,6 +39,7 @@ class MicCapture:
         self._blocksize = blocksize  # 0.2 s at 16 kHz
         self._q: queue.Queue[bytes] = queue.Queue()
         self._stream = None
+        self.device_label = ""
 
     def _pick_device(self, sd) -> int | None:
         if not self._wanted:
@@ -57,6 +58,8 @@ class MicCapture:
             if not any(d["max_input_channels"] > 0 for d in sd.query_devices()):
                 raise MicError("No microphone was found. Plug one in or enable it in Windows Sound settings.")
             device = self._pick_device(sd)
+            info = sd.query_devices(device) if device is not None else sd.query_devices(kind="input")
+            self.device_label = info["name"]
 
             def callback(indata, frames, time_info, status):
                 self._q.put(bytes(indata))
