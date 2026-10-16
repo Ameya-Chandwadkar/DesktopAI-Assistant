@@ -49,12 +49,20 @@ powershell -ExecutionPolicy Bypass -File scripts\setup_lenovo.ps1
 Expected `--check` result: `PASS` for Python/PySide6/vosk/microphone; `WARN` for the speech model (next step).
 You can re-run it any time: `.venv\Scripts\python.exe -m nova --check`.
 
-## Step 5b - Download the speech model  (**Lenovo**, ~40 MB, needs internet)
+## Step 5b - Download the speech model  (**Lenovo**, needs internet)
+**Recommended - Whisper** (accurate, ~480 MB, runs on the CPU; speech is transcribed ~1-3 s after you release the button):
 ```powershell
-.venv\Scripts\python.exe -m nova --download-model small
+.venv\Scripts\python.exe -m pip install -r requirements.txt
+.venv\Scripts\python.exe -m nova --download-model whisper-small
 ```
-Downloads `vosk-model-small-en-us-0.15` from alphacephei.com into `%APPDATA%\NOVA\models`.
-For better accuracy (128 MB, still fine on 16 GB RAM) use `--download-model large`; NOVA prefers the larger model if both exist.
+Lighter: `--download-model whisper-base` (~140 MB, faster, less accurate).
+Fallback: Vosk (40 MB, weak with accents/uncommon words): `--download-model vosk-small`.
+Models go to `%APPDATA%\NOVA\models`. With engine = `auto` (Settings > Speech) NOVA uses Whisper when it is downloaded, otherwise Vosk.
+
+Test the microphone and recognition without the UI (records 5 s in memory, saves nothing):
+```powershell
+.venv\Scripts\python.exe -m nova --mic-test
+```
 
 ## Step 6 - Microphone permission  (**Lenovo**)
 1. *Settings -> Privacy & security -> Microphone*: turn on **Microphone access** and **Let desktop apps access your microphone**

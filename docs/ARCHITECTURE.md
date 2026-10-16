@@ -46,7 +46,9 @@ come from the Settings window (stored in SQLite) or `config.example.json` -> `--
     ├─► actions/web.py                              URL validation (http/https only)
     └─► actions/system.py   (WindowsSystem)         the ONLY module that touches the OS
 
- Speech                  nova/speech/       mic.py (capture) -> ptt.py (push-to-talk) -> vosk_backend.py
+ Speech                  nova/speech/       mic.py (capture) -> ptt.py (push-to-talk) -> engines.py picks
+                                            whisper_backend.py (faster-whisper) or vosk_backend.py;
+                                            mic_test.py is the `--mic-test` diagnostic
  Storage / config        nova/db.py, nova/config.py, nova/paths.py, nova/log.py
 ```
 
@@ -89,4 +91,4 @@ audio capture + recognition run in one `PushToTalk` thread whose callbacks are r
 * `nlu/llm.py`: runs only when `LocalParser.parse()` returns `None`; must return the same `Action` objects, which
   go through the same `validate()` -> engine path.
 * Optional TTS and wake word attach to `Assistant`/`PushToTalk` without touching the engine.
-* `faster-whisper` can implement the `Recognizer` protocol in `speech/vosk_backend.py` (CUDA on the RTX 3050).
+* Whisper on the RTX 3050 (CUDA) is a possible speed-up of the existing `WhisperRecognizer`; CPU int8 is the default.

@@ -6,7 +6,7 @@ folders for documents and opens them. Phase 1 is **fully offline and needs no AI
 
 ## What works in Phase 1
 * Dark, compact, draggable, always-on-top window with minimize/close; remembers its position.
-* Push-to-talk mic button (Vosk, offline) with live text; typed commands too.
+* Push-to-talk mic button with offline speech recognition: **Whisper** (recommended, accurate; transcribes when you release the button) or Vosk (lighter, weaker, shows live text). Typed commands too.
 * Shows what it heard, the action it chose, and the result (colour-coded).
 * Open YouTube / search YouTube / any URL, in Chrome, Edge, Firefox or your default browser.
 * Launch Notepad, VS Code, Chrome, Edge, Calculator, Word, Excel, … plus your own apps (Settings).
@@ -38,7 +38,7 @@ python -m venv .venv
 .venv\Scripts\python.exe -m nova            # run the app
 .venv\Scripts\python.exe -m nova --check    # what works on this machine
 ```
-Other CLI flags: `--download-model small|large`, `--list-mics`, `--import-config FILE`.
+Other CLI flags: `--download-model whisper-small|whisper-base|vosk-small|vosk-large`, `--mic-test`, `--list-mics`, `--import-config FILE`.
 
 ## Installing on the Lenovo
 See **[docs/DEPLOY_LENOVO.md](docs/DEPLOY_LENOVO.md)** (export ZIP -> extract -> `setup_lenovo.ps1` -> download model -> mic permission -> checklist).
@@ -67,7 +67,8 @@ docs/            ARCHITECTURE.md · DEPLOY_LENOVO.md
 |---|---|
 | Automated tests on the Dell (146 pass, 1 skipped - symlink privilege) | parser, allowlist, URL/path safety, file search & ranking, engine paths incl. all error cases (with a fake OS layer), history, settings, push-to-talk logic (fake audio), zip-slip protection, headless UI wiring |
 | Manually on the Dell | window renders correctly (screenshot reviewed); app starts and exits cleanly; `--check` finds this PC's apps/folders; Notepad launches through the real launcher; ZIP export -> clean folder -> fresh venv -> `--check` + all tests pass using only `PySide6-Essentials` |
-| **Not tested yet** | real microphone capture and Vosk recognition (model not downloaded here), speech accuracy, anything on the Lenovo, launching Chrome/VS Code/Word and default-app opening of real files via the UI, DPI/multi-monitor behaviour. Use the checklist in `docs/DEPLOY_LENOVO.md` |
+| Tested on the Lenovo by you | mic capture works (`--mic-test` showed a healthy level); Vosk *small* heard "when you do" for "open notepad", hence Whisper |
+| **Not tested yet** | Whisper transcription with a real model (tested only against a fake model and the real faster-whisper API signatures), speech accuracy, anything on the Lenovo, launching Chrome/VS Code/Word and default-app opening of real files via the UI, DPI/multi-monitor behaviour. Use the checklist in `docs/DEPLOY_LENOVO.md` |
 
 Known limits: Vosk's small model is weak with unusual words/filenames (typed search or the `large` model help); filename
 matching is substring-based, not fuzzy; a UI "recording" colour only appears once the mic has actually opened (press, wait for

@@ -50,5 +50,5 @@ Write-Host "`nRunning environment check...`n"
 & $venvPy -m nova --check
 
 Write-Host "`nNext steps:"
-Write-Host "  1. Download the speech model:   .venv\Scripts\python.exe -m nova --download-model small"
+Write-Host "  1. Download the speech model:   .venv\Scripts\python.exe -m nova --download-model whisper-small"
 Write-Host "  2. Start NOVA:                  scripts\run_nova.bat"
